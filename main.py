@@ -26,8 +26,18 @@ Run once before using:
 """
 
 import argparse
+import re
 import sys
 from pathlib import Path
+
+
+def _validate_month(value: str) -> str:
+    """Validate YYYY-MM format and return the value unchanged."""
+    if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", value):
+        raise argparse.ArgumentTypeError(
+            f"Invalid month format: '{value}'. Expected YYYY-MM (e.g. 2023-01)."
+        )
+    return value
 
 
 def _parse_args():
@@ -39,12 +49,12 @@ def _parse_args():
         help="GCP project ID to bill the BigQuery query against.",
     )
     parser.add_argument(
-        "--start", default="2023-01",
+        "--start", default="2023-01", type=_validate_month,
         help="Start month YYYY-MM (default: 2023-01)",
     )
     parser.add_argument(
-        "--end", default="2023-06",
-        help="End month YYYY-MM (default: 2023-06)",
+        "--end", default="2026-01", type=_validate_month,
+        help="End month YYYY-MM (default: 2026-01)",
     )
     parser.add_argument(
         "--no-fetch", action="store_true",
@@ -87,7 +97,6 @@ def main():
         # Only fetch months not already in the CSV
         existing = load_existing_csv()
         all_months = []
-        from datetime import date
         y, m = int(args.start[:4]), int(args.start[5:7])
         ey, em = int(args.end[:4]), int(args.end[5:7])
         while (y, m) <= (ey, em):
@@ -101,6 +110,10 @@ def main():
         if not missing:
             print("[INFO] All months already fetched. Using existing data.")
         else:
+            # BigQuery BETWEEN fetches all months in the range, including
+            # ones already cached. existing.update() deduplicates by
+            # overwriting with fresh values, so this is safe but may
+            # scan more data than strictly necessary.
             fetch_start, fetch_end = missing[0], missing[-1]
             print(f"[INFO] {len(existing)} month(s) cached. "
                   f"Fetching {len(missing)} new month(s): {fetch_start} → {fetch_end}")

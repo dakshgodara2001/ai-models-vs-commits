@@ -57,13 +57,11 @@ python main.py --no-fetch --out chart.png
 ```
 ├── main.py                  # Pipeline CLI (fetch → visualize)
 ├── fetch_bigquery.py        # BigQuery fetch: githubarchive.month.*
-├── fetch_github_data.py     # Fallback: stream raw .json.gz from gharchive.org
 ├── llm_events.py            # 39 curated LLM release events with org + date
 ├── visualize.py             # Chart renderer (outlier capping, label stagger)
 ├── requirements.txt
 └── data/                    # Created on first run (gitignored)
-    ├── monthly_commits.csv  # Aggregated monthly commit totals
-    └── .fetch_checkpoint    # Resume tracker for streaming fallback
+    └── monthly_commits.csv  # Aggregated monthly commit totals
 ```
 
 ## Data sources
@@ -71,7 +69,6 @@ python main.py --no-fetch --out chart.png
 | Source | Used for |
 |--------|----------|
 | [GitHub Archive on BigQuery](https://console.cloud.google.com/marketplace/details/github/github-archive) (`githubarchive.month.*`) | Monthly commit totals via `PushEvent.payload.size` |
-| [gharchive.org](https://www.gharchive.org/) | Fallback hourly streaming (memory-efficient, resumable) |
 | Manual curation | LLM release dates |
 
 ## LLM events included
@@ -84,7 +81,7 @@ OpenAI (GPT-3, ChatGPT, GPT-4, GPT-4o, o1, o3, GPT-4.1), Anthropic (Claude 1–4
 main.py
   --project      GCP project ID (required for fetch)
   --start        Start month YYYY-MM (default: 2023-01)
-  --end          End month YYYY-MM (default: 2023-06)
+  --end          End month YYYY-MM (default: 2026-01)
   --no-fetch     Skip BigQuery fetch, use existing CSV
   --out          Output path for chart (omit to display interactively)
   --plot-start   Restrict chart x-axis start YYYY-MM

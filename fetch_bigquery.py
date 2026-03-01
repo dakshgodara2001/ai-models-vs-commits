@@ -20,6 +20,7 @@ Usage:
 
 import argparse
 import csv
+import re
 from pathlib import Path
 
 from google.cloud import bigquery
@@ -116,6 +117,15 @@ def save_csv(totals: dict[str, int]) -> None:
 # CLI
 # ---------------------------------------------------------------------------
 
+def _validate_month(value: str) -> str:
+    """Validate YYYY-MM format and return the value unchanged."""
+    if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", value):
+        raise argparse.ArgumentTypeError(
+            f"Invalid month format: '{value}'. Expected YYYY-MM (e.g. 2023-01)."
+        )
+    return value
+
+
 def _parse_args():
     parser = argparse.ArgumentParser(
         description="Fetch GitHub commit counts via BigQuery."
@@ -125,12 +135,12 @@ def _parse_args():
         help="GCP project ID to bill the query against.",
     )
     parser.add_argument(
-        "--start", default="2023-01",
+        "--start", default="2023-01", type=_validate_month,
         help="Start month YYYY-MM (default: 2023-01)",
     )
     parser.add_argument(
-        "--end", default="2023-06",
-        help="End month YYYY-MM (default: 2023-06)",
+        "--end", default="2026-01", type=_validate_month,
+        help="End month YYYY-MM (default: 2026-01)",
     )
     return parser.parse_args()
 

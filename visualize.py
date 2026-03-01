@@ -64,7 +64,7 @@ def cap_outliers(df: pd.DataFrame, z_thresh: float = 3.0) -> pd.DataFrame:
         print(f"  Capping {len(capped)} outlier month(s): {', '.join(capped)}")
         df = df.copy()
         df.loc[outlier_mask, "commits"] = None
-        df["commits"] = df["commits"].interpolate(method="linear").round().astype("int64")
+        df["commits"] = df["commits"].interpolate(method="linear").bfill().ffill().round().astype("int64")
 
     return df
 
